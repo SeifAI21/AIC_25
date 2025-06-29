@@ -34,8 +34,6 @@ def run_training(args):
         else:
             train_both_sequential(args)
 
-    print("Training completed successfully!")
-
 def train_ssvep(args):
     """Train SSVEP model"""
     
