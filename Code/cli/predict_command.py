@@ -88,7 +88,7 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
         mi_model_path = os.path.join(models_dir, mi_model_files[0])
         
         # Load model checkpoint
-        checkpoint = torch.load(mi_model_path, map_location='cpu')
+        checkpoint = torch.load(mi_model_path, map_location='cpu', weights_only=False)
         
         # Extract model info from checkpoint
         architecture = checkpoint.get('architecture', 'SimpleNet')
