@@ -290,10 +290,17 @@ class MITrainer:
             else:
                 patience_counter += 1
             
-            if (epoch + 1) % 50 == 0:
+            if (epoch + 1) % 10 == 0:
                 print(f"Epoch {epoch+1}: Val F1 {val_f1:.4f} (best {best_val_f1:.4f})")
             
             if patience_counter >= early_stop_patience:
+                print(f"Early stopping triggered after {patience_counter} epochs without improvement.")
+                epoch_pbar.set_description("Training Progress (Early Stopped)")
+                epoch_pbar.set_postfix({
+                    'Val F1': f'{val_f1:.4f}',
+                    'Best F1': f'{best_val_f1:.4f}',
+                    'Train F1': f'{train_f1:.4f}'
+                })
                 break
         
         epoch_pbar.close()

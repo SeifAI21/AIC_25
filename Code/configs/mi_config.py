@@ -28,15 +28,15 @@ MI_CONFIG = {
     'model': {
         'architecture': 'SimpleNet',
         'num_classes': 2,
-        'dropout_rate': 0.2
+        'dropout_rate': 0.20536865153489237
     },
     
     'training': {
         'batch_size': 16,
         'max_epochs': 200,
         'early_stopping_patience': 30,
-        'learning_rate': 0.001,
-        'weight_decay': 1e-4,
+        'learning_rate': 0.0015862257353335505,
+        'weight_decay': 0.00011841849524796584,
         
         # Optuna hyperparameter optimization
         'use_optuna': False, # Enable Optuna optimization or not
