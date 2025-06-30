@@ -39,9 +39,12 @@ class SSVEPVotingClassifier:
             'cat': cb.CatBoostClassifier(verbose=False, random_state=random_state)
         }
         
-        # Create ensemble
-        estimators = [(name, make_pipeline(StandardScaler(), clf)) 
-                     for name, clf in self.base_classifiers.items()]
+        # Create ensemble with scaling pipelines (matching notebook approach)
+        estimators = []
+        for name in ['cat', 'lda', 'lgbm']:  # Match notebook order
+            clf = clone(self.base_classifiers[name])
+            pipe = make_pipeline(StandardScaler(), clf)
+            estimators.append((name, pipe))
         
         self.ensemble = VotingClassifier(
             estimators=estimators,

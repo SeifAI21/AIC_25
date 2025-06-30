@@ -347,11 +347,6 @@ class SSVEPDataLoader:
         
         X_features = np.array(X_features)
         
-        # Fit scaler if training
-        if fit_transforms:
-            X_features = self.scaler.fit_transform(X_features)
-        else:
-            X_features = self.scaler.transform(X_features)
         
         if failed_count > 0:
             print(f"Failed to process {failed_count} trials")
@@ -363,15 +358,20 @@ def load_ssvep_training_data(train_index, val_index, base_path, config):
     """Load SSVEP training and validation data"""
     loader = SSVEPDataLoader(config)
     
-    # Load training data first to fit transforms
-    X_train, y_train = loader.extract_features_from_trials(
-        train_index, base_path, fit_transforms=True
+    # Combine train and validation indices first
+    combined_index = pd.concat([train_index, val_index]).reset_index(drop=True)
+    
+    # Process all data together to match notebook approach
+    X_combined, y_combined = loader.extract_features_from_trials(
+        combined_index, base_path, fit_transforms=True
     )
     
-    # Load validation data using fitted transforms
-    X_val, y_val = loader.extract_features_from_trials(
-        val_index, base_path, fit_transforms=False
-    )
+    # Split back into train and validation based on original lengths
+    n_train = len(train_index)
+    X_train = X_combined[:n_train]
+    y_train = y_combined[:n_train]
+    X_val = X_combined[n_train:]
+    y_val = y_combined[n_train:]
     
     return X_train, y_train, X_val, y_val, loader
 

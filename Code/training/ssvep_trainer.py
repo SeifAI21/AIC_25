@@ -228,7 +228,7 @@ class SSVEPTrainer:
                 train_index, val_index, self.data_path, self.config
             )
             
-            if len(X_train) == 0 or len(X_val) == 0:
+            if len(X_train) == 0:
                 print("No SSVEP data found! Please check the data path and file structure.")
                 return False
             
@@ -242,18 +242,11 @@ class SSVEPTrainer:
                 pickle.dump(loader, f)
             print(f"Data loader saved: {loader_save_path}")
             
-            # Option 1: Train with separate train/val split
-            use_cv_ensemble = True  # Can be configured
+            # Combine train and val for CV ensemble
+            X_full = np.vstack([X_train, X_val])
+            y_full = np.concatenate([y_train, y_val])
+            final_score = self._train_with_cv_ensemble(X_full, y_full)
             
-            if use_cv_ensemble:
-                # Combine train and val for CV ensemble (like in notebook)
-                X_full = np.vstack([X_train, X_val])
-                y_full = np.concatenate([y_train, y_val])
-                final_score = self._train_with_cv_ensemble(X_full, y_full)
-            else:
-                # Option 2: Traditional train/val split
-                cv_score = self._cross_validate_model(X_train, y_train)
-                final_score = self._train_final_model(X_train, y_train, X_val, y_val)
             
             print(f"Training completed - Final score: {final_score:.4f}")
             return True
