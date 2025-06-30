@@ -114,10 +114,7 @@ class MITrainer:
         total_loss = 0.0
         all_preds, all_labels = [], []
         
-        # Add progress bar for training
-        train_pbar = tqdm(train_loader, desc="Training", leave=False)
-        
-        for batch_x, batch_y in train_pbar:
+        for batch_x, batch_y in train_loader:
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             
             if batch_x.ndim == 3:
@@ -133,9 +130,6 @@ class MITrainer:
             all_preds.append(outputs.argmax(dim=1).cpu().numpy())
             all_labels.append(batch_y.cpu().numpy())
             
-            # Update progress bar
-            train_pbar.set_postfix({'loss': f'{loss.item():.4f}'})
-        
         all_preds = np.concatenate(all_preds)
         all_labels = np.concatenate(all_labels)
         
@@ -151,11 +145,8 @@ class MITrainer:
         total_loss = 0.0
         all_preds, all_labels = [], []
         
-        # Add progress bar for validation
-        val_pbar = tqdm(val_loader, desc="Validation", leave=False)
-        
         with torch.no_grad():
-            for batch_x, batch_y in val_pbar:
+            for batch_x, batch_y in val_loader:
                 batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
                 
                 if batch_x.ndim == 3:
@@ -168,9 +159,6 @@ class MITrainer:
                 all_preds.append(outputs.argmax(dim=1).cpu().numpy())
                 all_labels.append(batch_y.cpu().numpy())
                 
-                # Update progress bar
-                val_pbar.set_postfix({'loss': f'{loss.item():.4f}'})
-        
         all_preds = np.concatenate(all_preds)
         all_labels = np.concatenate(all_labels)
         
@@ -367,25 +355,21 @@ class MITrainer:
             )
             
             n_trials = self.config.get('training.optuna_trials', 50)
+            print(f"Running {n_trials} trials...")
             
-            # Add progress bar for Optuna trials
-            with tqdm(total=n_trials, desc="Optuna Optimization") as pbar:
-                def callback(study, trial):
-                    pbar.set_postfix({
-                        'Best F1': f'{study.best_trial.value:.4f}' if study.best_trial else 'N/A',
-                        'Trial': trial.number
-                    })
-                    pbar.update(1)
-                
-                study.optimize(
-                    lambda trial: self._objective(trial, train_dataset, val_dataset),
-                    n_trials=n_trials,
-                    callbacks=[callback],
-                    show_progress_bar=False
-                )
+            # Simple optimization without progress bars
+            study.optimize(
+                lambda trial: self._objective(trial, train_dataset, val_dataset),
+                n_trials=n_trials
+            )
             
             print(f"Optimization completed - Best F1: {study.best_trial.value:.4f}")
             best_params = study.best_trial.params
+            
+            # Print best parameters
+            print("Best parameters:")
+            for key, value in best_params.items():
+                print(f"  {key}: {value}")
         else:
             # Use default parameters
             print("Using default parameters...")
