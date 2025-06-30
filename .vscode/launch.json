@@ -12,6 +12,18 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/Code",
             "args": "train --task SSVEP --data-path \"/home/ahmedayman4a/programming/MIA AI/aic25/AIC25-MIA-AI/data/aic_dataset\" --ssvep-model-name my_ssvep_model"
-        }
+        },
+        {
+            "name": "Evaluate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/Code",
+            "env": {
+                "NUMBA_DISABLE_JIT": "1"
+            },
+            "args": "evaluate --data-path \"/home/ahmedayman4a/programming/MIA AI/aic25/AIC25-MIA-AI/data/aic_dataset\" --models-dir \"/home/ahmedayman4a/programming/MIA AI/aic25/AIC25-MIA-AI/weights\" --ssvep-model-name \"my_ssvep_model\" --mi-model-name \"MI_0.73\""
+        } //MI_0.73 MI_best_final_eegnet_model mi_model_SimpleNet
     ]
 }

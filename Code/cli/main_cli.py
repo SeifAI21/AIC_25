@@ -36,7 +36,7 @@ def main():
                             help='Path to test dataset')
     eval_parser.add_argument('--models-dir', type=str, default='models/weights/',
                             help='Directory containing trained models')
-    eval_parser.add_argument('--output-file', type=str, default='/kaggle/working/submission.csv',
+    eval_parser.add_argument('--output-file', type=str, default='submission.csv',
                             help='Output CSV file name')
     eval_parser.add_argument('--ssvep-model-name', type=str, default='ssvep_model',
                             help='Name of SSVEP model to load (without extension)')
@@ -49,7 +49,9 @@ def main():
     if args.mode == 'train':
         os.makedirs(args.output_dir, exist_ok=True)
     elif args.mode == 'evaluate':
-        os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
+        output_dir = os.path.dirname(args.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
     
     if args.mode == 'train':
         from cli.train_command import run_training

@@ -90,7 +90,7 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
         # Extract model info from checkpoint
         architecture = checkpoint.get('architecture', 'SimpleNet')
         channels = checkpoint.get('channels', 3)
-        samples = checkpoint.get('samples', 500)
+        samples = checkpoint.get('samples', 1000)
         
         from configs.mi_config import MIConfig
         from models.model_factory import create_mi_model
@@ -100,8 +100,11 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
         mi_config.update('model.architecture', architecture)
         
         # Create model architecture
-        model = create_mi_model(mi_config, channels, samples)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        model = create_mi_model(mi_config, channels, samples, dropout_rate=0.2129358591748753)
+        if 'model_state_dict' in checkpoint:
+            model.load_state_dict(checkpoint['model_state_dict'])
+        else:   
+            model.load_state_dict(checkpoint)
         model.eval()
         
         models['mi'] = {
@@ -122,7 +125,7 @@ def generate_predictions(test_data, models, data_path):
     predictions = {}
     
     # SSVEP predictions
-    if 'ssvep' in models and len(test_data['ssvep']) > 0 and False:
+    if 'ssvep' in models and len(test_data['ssvep']) > 0:
         print("Running SSVEP inference...")
         
         ssvep_model = models['ssvep']['model']
@@ -165,7 +168,7 @@ def generate_predictions(test_data, models, data_path):
             # Create test dataset and loader
             from training.mi_trainer import EEGDataset
             test_dataset = EEGDataset(X_test_mi)
-            test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+            test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
             
             mi_preds = []
             mi_model.eval()
