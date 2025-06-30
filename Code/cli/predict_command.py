@@ -94,7 +94,7 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
         # Create model architecture
         # Note: In production, you should save model metadata with dimensions
         model = create_mi_model(mi_config, channels=3, samples=500)
-        model.load_state_dict(torch.load(mi_model_path, map_location='cpu'))
+        model.load_state_dict(torch.load(mi_model_path, map_location='cpu', weights_only=True))
         model.eval()
         models['mi'] = model
         print(f"MI model loaded from {mi_model_name}.pth")
