@@ -330,56 +330,65 @@ class MITrainer:
     
     def train(self):
         """Main training function with optional Optuna optimization"""
-        print("Loading MI training data...")
+        try:
+            print("Loading MI training data...")
         
-        # Load data
-        train_index = pd.read_csv(os.path.join(self.data_path, 'train.csv'))
-        val_index = pd.read_csv(os.path.join(self.data_path, 'validation.csv'))
-        X_train, y_train, X_val, y_val = load_mi_training_data(
-            train_index, val_index, self.data_path, self.config
-        )
-        
-        print(f"Data loaded - Train: {X_train.shape}, Val: {X_val.shape}")
-        
-        train_dataset = EEGDataset(X_train, y_train)
-        val_dataset = EEGDataset(X_val, y_val)
-        
-        # Check if Optuna optimization is enabled
-        use_optuna = self.config.get('training.use_optuna', False)
-        
-        if use_optuna:
-            print("Starting hyperparameter optimization with Optuna...")
-            study = optuna.create_study(
-                direction='maximize',
-                pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)
+            # Load data
+            train_index = pd.read_csv(os.path.join(self.data_path, 'train.csv'))
+            val_index = pd.read_csv(os.path.join(self.data_path, 'validation.csv'))
+            X_train, y_train, X_val, y_val = load_mi_training_data(
+                train_index, val_index, self.data_path, self.config
             )
             
-            n_trials = self.config.get('training.optuna_trials', 50)
-            print(f"Running {n_trials} trials...")
+            print(f"Data loaded - Train: {X_train.shape}, Val: {X_val.shape}")
             
-            # Simple optimization without progress bars
-            study.optimize(
-                lambda trial: self._objective(trial, train_dataset, val_dataset),
-                n_trials=n_trials
-            )
+            train_dataset = EEGDataset(X_train, y_train)
+            val_dataset = EEGDataset(X_val, y_val)
             
-            print(f"Optimization completed - Best F1: {study.best_trial.value:.4f}")
-            best_params = study.best_trial.params
+            # Check if Optuna optimization is enabled
+            use_optuna = self.config.get('training.use_optuna', False)
             
-            # Print best parameters
-            print("Best parameters:")
-            for key, value in best_params.items():
-                print(f"  {key}: {value}")
-        else:
-            # Use default parameters
-            print("Using default parameters...")
-            best_params = {
-                'lr': self.config.get('training.learning_rate'),
-                'weight_decay': self.config.get('training.weight_decay'),
-                'batch_size': self.config.get('training.batch_size'),
-                'dropout_rate': self.config.get('model.dropout_rate')
-            }
-        
-        # Train final model
-        final_f1 = self._train_final_model(train_dataset, val_dataset, best_params)
-        print(f"Training completed - Final F1: {final_f1:.4f}")
+            if use_optuna:
+                print("Starting hyperparameter optimization with Optuna...")
+                study = optuna.create_study(
+                    direction='maximize',
+                    pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)
+                )
+                
+                n_trials = self.config.get('training.optuna_trials', 50)
+                print(f"Running {n_trials} trials...")
+                
+                # Simple optimization without progress bars
+                study.optimize(
+                    lambda trial: self._objective(trial, train_dataset, val_dataset),
+                    n_trials=n_trials
+                )
+                
+                print(f"Optimization completed - Best F1: {study.best_trial.value:.4f}")
+                best_params = study.best_trial.params
+                
+                # Print best parameters
+                print("Best parameters:")
+                for key, value in best_params.items():
+                    print(f"  {key}: {value}")
+            else:
+                # Use default parameters
+                print("Using default parameters...")
+                best_params = {
+                    'lr': self.config.get('training.learning_rate'),
+                    'weight_decay': self.config.get('training.weight_decay'),
+                    'batch_size': self.config.get('training.batch_size'),
+                    'dropout_rate': self.config.get('model.dropout_rate')
+                }
+            
+            # Train final model with best parameters
+            final_f1 = self._train_final_model(train_dataset, val_dataset, best_params)
+            print(f"Training completed - Final F1: {final_f1:.4f}")
+            return True  # Return success instead of exit
+        except Exception as e:
+            print(f"Training failed: {e}")
+            return False  # Return failure instead of exit
+        finally:
+            # Cleanup resources
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()

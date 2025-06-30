@@ -18,5 +18,17 @@ if current_dir not in sys.path:
 # Import and run CLI
 from cli.main_cli import main
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    try:
+        main()
+        print("Program completed successfully!")
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    finally:
+        # Clean exit for Kaggle notebooks
+        if 'KAGGLE_KERNEL_RUN_TYPE' in os.environ:
+            print("Kaggle environment detected - forcing clean exit")
+            os._exit(0)
+        else:
+            sys.exit(0)
