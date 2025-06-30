@@ -39,7 +39,7 @@ MI_CONFIG = {
         'weight_decay': 1e-4,
         
         # Optuna hyperparameter optimization
-        'use_optuna': True, # Enable Optuna optimization or not
+        'use_optuna': False, # Enable Optuna optimization or not
         'optuna_trials': 150,
         'optuna_search_spaces': {
             'lr': {'type': 'float', 'low': 1e-4, 'high': 1e-2, 'log': True},
