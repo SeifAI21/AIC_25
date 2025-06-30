@@ -82,40 +82,24 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
         print(f"Warning: SSVEP model not found at {ssvep_model_path} or {ssvep_loader_path}")
     
     # Load MI model (PyTorch model)
-    mi_model_files = [f for f in os.listdir(models_dir) if f.startswith(mi_model_name) and f.endswith('.pth')]
-    
-    if mi_model_files:
-        mi_model_path = os.path.join(models_dir, mi_model_files[0])
-        
-        # Load model checkpoint
-        checkpoint = torch.load(mi_model_path, map_location='cpu', weights_only=False)
-        
-        # Extract model info from checkpoint
-        architecture = checkpoint.get('architecture', 'SimpleNet')
-        channels = checkpoint.get('channels', 3)
-        samples = checkpoint.get('samples', 500)
-        
+    mi_model_path = os.path.join(models_dir, f'{mi_model_name}.pth')
+    if os.path.exists(mi_model_path):
+        import torch
+        from Code.models.model_factory import create_mi_model
         from configs.mi_config import MIConfig
-        from models.model_factory import create_mi_model
         
         # Load model configuration
         mi_config = MIConfig()
-        mi_config.update('model.architecture', architecture)
         
         # Create model architecture
-        model = create_mi_model(mi_config, channels, samples)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        # Note: In production, you should save model metadata with dimensions
+        model = create_mi_model(mi_config, channels=3, samples=500)
+        model.load_state_dict(torch.load(mi_model_path, map_location='cpu'))
         model.eval()
-        
-        models['mi'] = {
-            'model': model,
-            'config': mi_config,
-            'channels': channels,
-            'samples': samples
-        }
-        print(f"MI model loaded from {mi_model_files[0]}")
+        models['mi'] = model
+        print(f"MI model loaded from {mi_model_name}.pth")
     else:
-        print(f"Warning: MI model not found with prefix {mi_model_name}")
+        print(f"Warning: MI model not found at {mi_model_path}")
     
     return models
 
@@ -154,46 +138,43 @@ def generate_predictions(test_data, models, data_path):
             predictions['ssvep'] = {'ids': [], 'predictions': []}
     
     # MI predictions
-    if 'mi' in models and len(test_data['mi']) > 0:
+    if 'mi' in models and 'mi' in test_data:
         print("Running MI inference...")
+        mi_model = models['mi']
+        mi_data = test_data['mi']['data']
         
-        mi_model = models['mi']['model']
-        mi_config = models['mi']['config']
+        # Generate MI predictions using PyTorch model
+        import torch
+        from Code.models.model_factory import EEGDataset
+        from torch.utils.data import DataLoader
         
-        # Load and preprocess MI test data
-        from data.mi_loader import load_mi_test_data
-        X_test_mi = load_mi_test_data(test_data['mi'], data_path, mi_config)
+        # Create test dataset and loader
+        test_dataset = EEGDataset(mi_data)
+        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
         
-        if len(X_test_mi) > 0:
-            # Create test dataset and loader
-            from training.mi_trainer import EEGDataset
-            test_dataset = EEGDataset(X_test_mi)
-            test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-            
-            mi_preds = []
-            mi_model.eval()
-            with torch.no_grad():
-                for batch_x in test_loader:
-                    if batch_x.ndim == 3:
-                        batch_x = batch_x.unsqueeze(1)
-                    outputs = mi_model(batch_x)
-                    preds = outputs.argmax(dim=1)
-                    mi_preds.append(preds.cpu().numpy())
-            
-            mi_preds = np.concatenate(mi_preds) if mi_preds else np.array([])
-            
-            # Convert to label strings using MI config
-            inverse_mapping = mi_config.get('labels.inverse_mapping')
-            mi_labels = [inverse_mapping.get(pred, 'Unknown') for pred in mi_preds]
-            
-            predictions['mi'] = {
-                'ids': test_data['mi']['id'].values[:len(mi_labels)],
-                'predictions': mi_labels
-            }
-            print(f"MI inference completed: {len(mi_labels)} predictions")
-        else:
-            print("Warning: No MI test data could be loaded")
-            predictions['mi'] = {'ids': [], 'predictions': []}
+        mi_preds = []
+        mi_model.eval()
+        with torch.no_grad():
+            for batch_x in test_loader:
+                if isinstance(batch_x, (list, tuple)):
+                    batch_x = batch_x[0]
+                if batch_x.ndim == 3:
+                    batch_x = batch_x.unsqueeze(1)
+                outputs = mi_model(batch_x)
+                preds = outputs.argmax(dim=1)
+                mi_preds.append(preds.cpu().numpy())
+        
+        mi_preds = np.concatenate(mi_preds) if mi_preds else np.array([])
+        
+        # Convert to label strings
+        label_mapping = {0: 'Left', 1: 'Right'}
+        mi_labels = [label_mapping.get(pred, 'Unknown') for pred in mi_preds]
+        
+        predictions['mi'] = {
+            'ids': test_data['mi']['metadata']['id'].values,
+            'predictions': mi_labels
+        }
+        print(f"MI inference completed: {len(mi_labels)} predictions")
     
     return predictions
 
