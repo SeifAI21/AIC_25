@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Train SSVEP",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/Code",
+            "args": "train --task SSVEP --data-path \"/home/ahmedayman4a/programming/MIA AI/aic25/AIC25-MIA-AI/data/aic_dataset\" --ssvep-model-name my_ssvep_model"
+        }
+    ]
+}

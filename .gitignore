@@ -195,3 +195,6 @@ cython_debug/
 
 # Project-specific files
 MTC-AIC3/
+data/*
+catboost_info/
+weights/

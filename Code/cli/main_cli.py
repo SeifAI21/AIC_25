@@ -6,7 +6,9 @@ Supports two modes: train and evaluate
 import os
 import sys
 import argparse
-
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 def main():
     parser = argparse.ArgumentParser(description='EEG Classification Framework')
     subparsers = parser.add_subparsers(dest='mode', help='Available modes')
