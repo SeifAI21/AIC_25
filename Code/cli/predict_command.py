@@ -85,7 +85,7 @@ def load_trained_models(models_dir, ssvep_model_name, mi_model_name):
     mi_model_path = os.path.join(models_dir, f'{mi_model_name}.pth')
     if os.path.exists(mi_model_path):
         import torch
-        from Code.models.model_factory import create_mi_model
+        from models.model_factory import create_mi_model
         from configs.mi_config import MIConfig
         
         # Load model configuration
@@ -145,7 +145,7 @@ def generate_predictions(test_data, models, data_path):
         
         # Generate MI predictions using PyTorch model
         import torch
-        from Code.models.model_factory import EEGDataset
+        from models.model_factory import EEGDataset
         from torch.utils.data import DataLoader
         
         # Create test dataset and loader
