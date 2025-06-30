@@ -255,6 +255,12 @@ Default paths for Kaggle:
 - **SSVEP Task**: Achieves ~74% accuracy using ensemble methods
 - **Training Time**: Approximately 30-45 minutes per task (depends on hardware)
 
+## Reproducibility Notes
+
+Due to numerical precision variations inherent in different execution environments (notebook vs. script migration), minor weight deviations may occur during model reproduction. Therfore we provided pre-trained weights (`Code/models/weights/mi_model_SimpleNet.pth`) that represents the exact model state used for the final competition submission and maintains the reported performance metrics.
+
+While these minor parameter variations typically maintain validation set performance consistency, they may exhibit amplified effects on test set generalization due to the inherent signal-to-noise characteristics and inter-subject variability present in motor imagery EEG data. Detailed analysis of these data quality considerations is provided in the accompanying project documentation.
+
 ## License
 
 This project is developed for the MTC-AIC3 competition. Please refer to competition guidelines for usage restrictions and requirements.
