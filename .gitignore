@@ -197,4 +197,3 @@ cython_debug/
 MTC-AIC3/
 data/*
 catboost_info/
-weights/
