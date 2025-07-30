@@ -27,7 +27,7 @@ The framework expects the following dataset structure:
 
 ```bash
 git clone <repository-url>
-cd AIC25-MIA-AI
+cd AIC_25
 ```
 
 ### Install Dependencies
@@ -78,7 +78,7 @@ The requirements.txt includes the following key packages:
 ## Project Structure
 
 ```
-AIC25-MIA-AI/
+AIC_25/
 ├── Code/                           # Main source code directory
 │   ├── main.py                     # Main entry point
 │   ├── cli/                        # Command-line interface
